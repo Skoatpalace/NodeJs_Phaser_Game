@@ -37,6 +37,14 @@ var gestionPage = {
                 data.contentType = "image/jpeg";
                 data.dossier = "assets/"
             break
+            case ".ttf" :
+                data.contentType = "";
+                data.dossier = "assets/font"
+            break
+            case ".ogg" :
+                data.contentType = "audio/ogg";
+                data.dossier = "assets/sounds/"
+            break
             default : console.log("Erreur");
         }
         return data;

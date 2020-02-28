@@ -19,6 +19,7 @@ var isKickDown = false;
 var vKey;
 var boutonHaut;
 var boutonBas;
+var isReadyToKick = true;
 
 
 const game = new Phaser.Game(config);
@@ -32,13 +33,26 @@ function preload() {
     this.load.image("bas", "bas.png");
     this.load.image("castle", "castle.png");
     this.load.image("snail", "snailWalk1.png");
+
+    this.load.audio("kick","kick.ogg");
+    this.load.audio("ready","ready.ogg");
 }
 
 function create() {
+    this.sound.play("ready");
     var positionCameraCentreX = this.cameras.main.centerX;
     var positionCameraCentreY = this.cameras.main.centerY;
     this.add.sprite(positionCameraCentreX, positionCameraCentreY, "castle");
     player = this.add.sprite(positionCameraCentreX, positionCameraCentreY, "joueur");
+
+    var policeTitre = {
+        fontSize : "52px",
+        color : "#FF0000",
+        fontFamily : "Coiny"
+    }
+
+    this.add.text(positionCameraCentreX, 30, "coucou", policeTitre)
+
     var snail = this.add.sprite(500, positionCameraCentreY, "snail");
     snail.flipX = true;
     var tween = this.tweens.add({
@@ -111,7 +125,9 @@ function updateGrossirPlayer(){
     }
 }
 function deplacementPlayer(){
-    if (isKickDown) {
+    if (isKickDown && isReadyToKick){
+        game.sound.play("kick");
+        isReadyToKick = false;
         player.setTexture("joueur_cdp");
     } else if (isLeftDown) {
         player.x = player.x - 5;
@@ -130,11 +146,12 @@ function deplacementPlayer(){
     if (cursor.right.isDown) {
         isRightDown = true;
     }
-    if (vKey.isDown) {
+    if (vKey.isDown && isReadyToKick) {
         isKickDown = true;
     }
     if (vKey.isUp) {
         isKickDown = false;
+        isReadyToKick = true;
     }
     if (cursor.left.isUp) {
         isLeftDown = false;
