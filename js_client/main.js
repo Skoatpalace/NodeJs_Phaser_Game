@@ -1,93 +1,145 @@
 var config = {
-    type : Phaser.AUTO,
-    width : 800,
-    height : 600,
-    scene : {
-      preload : preload,
-      create : create,
-      update : update
+    type: Phaser.AUTO,
+    width: 800,
+    height: 600,
+    scene: {
+        preload: preload,
+        create: create,
+        update: update
     }
-  }
-  
-  var player = null;
-  var clickBoutonHaut = false;
-  var clickBoutonBas = false;
-  var cursor = null;
-  var vKey;
-  
-  const game = new Phaser.Game(config);
-  
-  function preload(){
-    this.load.image("joueur","player.png");
-    this.load.image("joueur_cdp","player_kick.png");
-    this.load.image("haut","haut.png");
-    this.load.image("bas","bas.png");
-  }
-  
-  function create(){
+}
+
+var player = null;
+var clickBoutonHaut = false;
+var clickBoutonBas = false;
+var cursor = null;
+var isLeftDown = false;
+var isRightDown = false;
+var isKickDown = false;
+var vKey;
+var boutonHaut;
+var boutonBas;
+
+
+const game = new Phaser.Game(config);
+
+function preload() {
+    this.load.image("joueur", "player.png");
+    this.load.image("joueur_cdp", "player_kick.png");
+    this.load.image("joueur_walk1", "player_walk1.png");
+    this.load.image("joueur_walk2", "player_walk2.png");
+    this.load.image("haut", "haut.png");
+    this.load.image("bas", "bas.png");
+    this.load.image("castle", "castle.png");
+    this.load.image("snail", "snailWalk1.png");
+}
+
+function create() {
     var positionCameraCentreX = this.cameras.main.centerX;
     var positionCameraCentreY = this.cameras.main.centerY;
-    player = this.add.sprite(positionCameraCentreX,positionCameraCentreY,"joueur");
-  
-    var down = this.add.sprite(50,50,"bas").setInteractive();
-    var top = this.add.sprite(100,50,"haut").setInteractive();
-  
-    down.on("pointerdown",function(){
-      clickBoutonBas = true;
-    });
-    down.on("pointerup",function(){
-      clickBoutonBas = false;
+    this.add.sprite(positionCameraCentreX, positionCameraCentreY, "castle");
+    player = this.add.sprite(positionCameraCentreX, positionCameraCentreY, "joueur");
+    var snail = this.add.sprite(500, positionCameraCentreY, "snail");
+    snail.flipX = true;
+    var tween = this.tweens.add({
+        targets : snail,
+        x : 700,
+        ease : "linear",
+        duration : 3000,
+        yoyo : true,
+        repeat : -1,
+        onStart : function(){},
+        onComplete : function(){},
+        onYoyo : function(){snail.flipX = !snail.flipX},
+        onRepeat : function(){snail.flipX = !snail.flipX} 
     })
-    down.on("pointerout",function(){
-      clickBoutonBas = false;
-    })
-  
-    top.on("pointerdown",function(){
-      clickBoutonHaut = true;
-    });
-    top.on("pointerup",function(){
-      clickBoutonHaut = false;
-    })
-    top.on("pointerout",function(){
-      clickBoutonHaut = false;
-    })
-    
+
+    boutonBas = this.add.sprite(50, 50, "bas").setInteractive();
+    boutonHaut = this.add.sprite(100, 50, "haut").setInteractive();
+
+    grossirPlayer();
     cursor = this.input.keyboard.createCursorKeys();
-  
-    this.input.keyboard.on("keydown_B", function(){
-      console.log("coucou");
-    })
-  
     vKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.V);
-  
-  }
-  
-  function update(time, delta){
-    // player.setAngle(player.angle + 1);
-    if(clickBoutonHaut){
-      player.setScale(player.scaleX + 0.1, player.scaleY + 0.1);
+    this.anims.create({
+        key: "playerWalk",
+        frames: [
+            { key: "joueur_walk1" },
+            { key: "joueur_walk2" }
+        ],
+        frameRate: 8,
+        repeat: -1
+    });
+}
+
+function update(time, delta) {
+    updateGrossirPlayer();
+    deplacementPlayer();
+}
+
+function grossirPlayer(){
+    boutonBas.on("pointerdown", function () {
+        clickBoutonBas = true;
+    });
+    boutonBas.on("pointerup", function () {
+        clickBoutonBas = false;
+    })
+    boutonBas.on("pointerout", function () {
+        clickBoutonBas = false;
+    })
+
+    boutonHaut.on("pointerdown", function () {
+        clickBoutonHaut = true;
+    });
+    boutonHaut.on("pointerup", function () {
+        clickBoutonHaut = false;
+    })
+    boutonHaut.on("pointerout", function () {
+        clickBoutonHaut = false;
+    })
+}
+
+function createAnimations(){
+
+}
+
+function updateGrossirPlayer(){
+    if (clickBoutonHaut) {
+        player.setScale(player.scaleX + 0.1, player.scaleY + 0.1);
     }
-    if(clickBoutonBas){
-      player.setScale(player.scaleX - 0.1, player.scaleY - 0.1);
+    if (clickBoutonBas) {
+        player.setScale(player.scaleX - 0.1, player.scaleY - 0.1);
     }
-    if(cursor.left.isDown){
-      player.x = player.x - 5;
-    } 
-    if(cursor.right.isDown){
-      player.x += 5;
-    } 
-    if(cursor.up.isDown){
-      player.y -= 5;
+}
+function deplacementPlayer(){
+    if (isKickDown) {
+        player.setTexture("joueur_cdp");
+    } else if (isLeftDown) {
+        player.x = player.x - 5;
+        player.anims.play("playerWalk", true);
+        player.setFlip(true, false);
+    } else if (isRightDown) {
+        player.x += 5;
+        player.anims.play("playerWalk", true);
+        player.setFlip(false, false);
+    } else {
+        player.setTexture("joueur");
     }
-    if(cursor.down.isDown){
-      player.y += 5;
+    if (cursor.left.isDown) {
+        isLeftDown = true;
     }
-  
-    if(vKey.isDown){
-      console.log("v");
-      player.setTexture("joueur_cdp");
+    if (cursor.right.isDown) {
+        isRightDown = true;
     }
-    if(vKey.isUp){
-      player.setTexture("joueur");
+    if (vKey.isDown) {
+        isKickDown = true;
     }
-  }
+    if (vKey.isUp) {
+        isKickDown = false;
+    }
+    if (cursor.left.isUp) {
+        isLeftDown = false;
+    }
+    if (cursor.right.isUp) {
+        isRightDown = false;
+    }
+}
