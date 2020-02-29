@@ -6,6 +6,12 @@ var config = {
         preload: preload,
         create: create,
         update: update
+    },
+    physics : {
+        default : "arcade",
+        arcade : {
+            gravity : { y : 500}
+        }
     }
 }
 
@@ -33,6 +39,9 @@ function preload() {
     this.load.image("bas", "bas.png");
     this.load.image("castle", "castle.png");
     this.load.image("snail", "snailWalk1.png");
+    this.load.image("sol", "sol.png");
+
+    this.load.spritesheet("zombieSPS","ZombieSpriteSheet.png",{frameWidth : 80, frameHeight : 110});
 
     this.load.audio("kick","kick.ogg");
     this.load.audio("ready","ready.ogg");
@@ -43,7 +52,16 @@ function create() {
     var positionCameraCentreX = this.cameras.main.centerX;
     var positionCameraCentreY = this.cameras.main.centerY;
     this.add.sprite(positionCameraCentreX, positionCameraCentreY, "castle");
-    player = this.add.sprite(positionCameraCentreX, positionCameraCentreY, "joueur");
+    player = this.physics.add.sprite(positionCameraCentreX, positionCameraCentreY, "joueur");
+
+    var platforms = this.physics.add.staticGroup();
+
+    var sol1 = this.add.sprite(100, 550, "sol");
+    var sol2 = this.add.sprite(positionCameraCentreX, 550, "sol");
+    platforms.add(sol1);
+    platforms.add(sol2);
+
+    this.physics.add.collider(platforms, player);
 
     var policeTitre = {
         fontSize : "52px",
@@ -74,12 +92,42 @@ function create() {
     grossirPlayer();
     cursor = this.input.keyboard.createCursorKeys();
     vKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.V);
-    this.anims.create({
+
+    genererAnimations();
+    
+    this.add.sprite(300,300).play("zombieStand");
+}
+
+function genererAnimations(){
+    game.anims.create({
         key: "playerWalk",
         frames: [
             { key: "joueur_walk1" },
             { key: "joueur_walk2" }
         ],
+        frameRate: 8,
+        repeat: -1
+    });
+
+    game.anims.create({
+        key: "zombieWalk",
+        frames: game.anims.generateFrameNumbers("zombieSPS", {start : 2, end : 3}),
+        frameRate: 8,
+        repeat: -1
+    });
+
+    game.anims.create({
+        key: "zombieStand",
+        frames: [{
+            key : "zombieSPS", frame : 1 
+        }],
+        frameRate: 8,
+        repeat: -1
+    });
+
+    game.anims.create({
+        key: "zombieIdle",
+        frames: game.anims.generateFrameNumbers("zombieSPS", {start : 0, end : 1}),
         frameRate: 8,
         repeat: -1
     });

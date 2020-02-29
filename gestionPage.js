@@ -39,7 +39,7 @@ var gestionPage = {
             break
             case ".ttf" :
                 data.contentType = "";
-                data.dossier = "assets/font"
+                data.dossier = "assets/font/"
             break
             case ".ogg" :
                 data.contentType = "audio/ogg";
